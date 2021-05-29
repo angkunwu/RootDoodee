@@ -151,11 +151,9 @@ Hence, this is a <a href="https://en.wikipedia.org/wiki/Binomial_regression">bin
 This method results in the following fits for various customer types. <br />
 <br />
 <p align="center">
-<img src = "Binomial_regression_plots.png" width="900"></img>
+<img src = "binomial_regression_plot.png" width="900"></img>
 </p>
-<p>The plots above display the probabilities of being in rank <img src="https://latex.codecogs.com/svg.image?r" title="r" /> for each customer type. The orange markers represent the actual probabilities deduced from counting the data, while the blue markers represent those resulted from the fits.</p>
-
-(PERHAPS PROVIDE A TABLE OF b_i0's HERE. ALSO, IS IT POSSIBLE TO GIVE SOME NUMBERS THAT TELL THE READERS HOW WELL THE BINOMIAL FITS ARE?)
+<p>The plots above display the probabilities of being in rank <img src="https://latex.codecogs.com/svg.image?r" title="r" /> for each customer type. The orange markers represent the actual probabilities deduced from counting the data, while the blue markers represent those resulted from the fits. On each plot, the fitted value of <img src="https://latex.codecogs.com/svg.image?\hat{\pi}_i(B_i=\$10)" title="pi_i(Bi=10)" /> is provided.</p>
 
 As for <img src="https://latex.codecogs.com/svg.image?a_i" title="a_i" />, we require the data at different bidding price in order to make a well-inform estimate of the parameter. Instead, we make another assumption that it is -0.5 for all customer types. This number implies that, if we decrease our bidding price by $1, the odd, <img src="https://latex.codecogs.com/svg.image?\frac{\hat{\pi}_i}{1-\hat{\pi}_i}" title="odd_hat" />, that another company bids higher than ours will increase by a multiple of <img src="https://latex.codecogs.com/svg.image?e^{0.5}\simeq%201.65" title="e^0.5" />. 
 
