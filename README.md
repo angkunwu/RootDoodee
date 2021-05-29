@@ -208,15 +208,11 @@ The second and third inputs were [previously predicted by our probability models
 <img src="https://latex.codecogs.com/svg.image?\frac{\partial}{\partial%20B_j}\frac{f(\mathbf{B})}{g(\mathbf{B})}=\frac{M_j}{g(\mathbf{B})}\sum_r\left\{\left[1+a_jB_j(r-1-4\pi_j)\right]C_{j,r}-\frac{f(\mathbf{B})}{g(\mathbf{B})}a_j(r-1-4\pi_j)S_{j,r}\right\}P_j(r;B_j)" title="gradient_f/g" />
 </p>
 
-<p>Since the function <img src="https://latex.codecogs.com/svg.image?\frac{f(\mathbf{B})}{g(\mathbf{B})}" title="f/g" /> we are minimizing in this problem has a rather complicated form, it likely contains many local minima. Hence, we should run the algorithm multiple  (HOW MANY?)</p>
-  
-<p>times and take <img src="https://latex.codecogs.com/svg.image?\mathbf{B}" title="\mathbf{B}" /> from the trial with smallest final <img src="https://latex.codecogs.com/svg.image?\frac{f(\mathbf{B})}{g(\mathbf{B})}" title="f/g" />, in order to obtain the bidding price that yields <img src="https://latex.codecogs.com/svg.image?\frac{f(\mathbf{B})}{g(\mathbf{B})}" title="f/g" /> as close as possible to its global minimum within the constrained region. We set the learning rate, <img src="https://latex.codecogs.com/svg.image?\ell" title="\ell" />, to (HOW MUCH?) </p>
-  
-<p>and the convergence limit, <img src="https://latex.codecogs.com/svg.image?L_{\min}" title="L_{\min}" />, to (HOW MUCH?)</p>
+<p>Since the function <img src="https://latex.codecogs.com/svg.image?\frac{f(\mathbf{B})}{g(\mathbf{B})}" title="f/g" /> we are minimizing in this problem has a rather complicated form, it likely contains many local minima. Hence, we run the algorithm for 26 trials and take <img src="https://latex.codecogs.com/svg.image?\mathbf{B}" title="\mathbf{B}" /> from the trial with smallest final <img src="https://latex.codecogs.com/svg.image?\frac{f(\mathbf{B})}{g(\mathbf{B})}" title="f/g" />, in order to obtain the bidding price that yields <img src="https://latex.codecogs.com/svg.image?\frac{f(\mathbf{B})}{g(\mathbf{B})}" title="f/g" /> as close as possible to its global minimum subject to the constraint. We set the learning rate, <img src="https://latex.codecogs.com/svg.image?\ell" title="\ell" />, to 0.05 and the convergence limit, <img src="https://latex.codecogs.com/svg.image?L_{\min}" title="L_{\min}" />, to 0.0001. These choices of tuning parameters are carefully chosen with the tradeoff between accuracy and computational cost in mind.</p>
 
-These choices of tuning parameters are carefully chosen with the tradeoff between accuracy and computational cost in mind.
+<p>The closest point we obtained to the global minimum corresponds to bidding prices shown in the table below. The resulting cost per purchase is $4.26, and the purchase rate is 4.03%. Note that the raw data has the cost of purchase of $23.98 and the purchase rate of 7.83% with the uniform bidding price of $10. However, the numerical values rely on our assumption that <img src="https://latex.codecogs.com/svg.image?a_i=-0.5" title="a_i=-0.5" /> and should be treated as such. </p>
 
-(RESULTS AND INTERPRETATIONS GO HERE)
+The most important message we learn from this optimization result is that the algorithm tends to favor lower bids for customers who are currently insured and higher bids for customers who are looking to purchase the insurance policy for multiple vehicles or drivers. Furthermore, the series of models and optimization algorithms provided here can be applied to larger customer data sets with more features, including the variation in bidding prices, in order to provide more precise advertisement bidding strategies in the future.
 
 
 
