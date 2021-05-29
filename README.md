@@ -4,12 +4,12 @@ This is a Erdos data science Bootcamp project. We explore the dataset from insur
 ___
 ## Overview
 
-- [Project description](#description)
+- [Project description](#project-description)
 - [Data Exploration](#data-exploration)
-- [Machine learning approaches for probabilities](#machine-learning-method-for-probability)
-- [Basic optimization method](#strategy-for-the-bidding-price)
-- [Binomial regression for rank distribution](#binomial-fit)
-- [Full optimization method](#gradient-descent)
+- [Machine learning approaches for probabilities](#machine-learning-approaches-for-probabilities)
+- [Basic optimization method](#basic-optimization-method)
+- [Binomial regression for rank distribution](#binomial-regression-for-rank-distribution)
+- [Full optimization method](#full-optimization-method)
 - [Authors](#authorship)
 
 ___
@@ -85,45 +85,38 @@ Statistically, we're not dealing with a classification problem but a probability
 
 ### Targets of the Problem
 
-Notice that the probabilities are all conditioned, e.g. the probability of the 2nd-rank ads being clicked but not sold. Thus, in principle, we have a classification of 15 type (5 ranks, click and sold or not, no click).
-
-<img src="https://latex.codecogs.com/svg.image?newtar&space;=&space;3(r-1)&space;&plus;&space;i,&space;\quad&space;i&space;=&space;0,&space;1,&space;2," title="newtar = 3(r-1) + i, \quad i = 0, 1, 2," />
-
-where i=0,1,2 for sold, click but not sold and not click, respectively. However, the samples are limitted for some targets to stratify. So a more suitable one to assume that the sold rate is independent once the customer click, then we only need to have 10 type of new targets
-
-<img src="https://latex.codecogs.com/svg.image?newtar&space;=&space;2(r-1)&space;&plus;&space;i,&space;\quad&space;i&space;=&space;0,&space;1," title="newtar = 2(r-1) + i, \quad i = 0, 1," />
+Notice that the probabilities are all conditioned, e.g. the probability of the 2nd-rank ads being clicked but not sold. Thus, in principle, we have a classification of 15 type (5 ranks, click and sold or not, no click). However, the samples are limitted for some targets to stratify. So a more suitable one to assume that the sold rate is independent once the customer click, then we only need to have 10 type of new targets.
 
 ##### However
 
-How should we deal with the relation between bidding price and the ranking? We have no other info from the dataset, or we need to search for more supporting relations. But we could adopt a simple but very reasonable assumption:
+How should we deal with the relation between bidding price and the ranking? We have no other info from the dataset, or we need to search for more supporting relations. For a naive model, we could adopt a **key assumption**:
+
 `The overall buying probability of a particular type of clicked customers is independent of their ranking`
+
 Afterall, the ranking is an evaluation of the market (other companies) to the customer (how much they want to earn this customer). Once the customer clicked, the probability of buying should be the internal feature of the customer. Thus, if we view a customer as a stock, ranking is more like the market price while the buying probability is the EPS (earning per share), measuring how profitable of the stock company.
 <p align="center">
 <img src = "rankDist.png" width="500"></img>
 </p>
 Different ranks have similar frequencies.
 
-### Model and Optimization
+### Naive Bidding Price Model
 
 In this section, we used the probabilities obtained from <a href="https://github.com/dmlc/xgboost">XGBoost</a>, which is an efficient application of <a href="https://en.wikipedia.org/wiki/Gradient_boosting">Gradient boosting</a>, to perform the computation in this section.
 
 Since the goal is to "optimize the cost per customer while having 4% customer rate over all ads shown". The simpliest intuition is to bid more on valuable customers. If we forget about the 4% constraint for a second, to decrease the cost per sold, we only need to consider the probability `P(sold|click)` for a customer as the company only need to pay when clicks happen
 
-<img src="https://latex.codecogs.com/svg.image?P(sold|click)=\frac{P(\text{sold&space;and&space;click})}{P(click)}=\frac{P(sold)}{P(click)}" title="P(sold|click)=\frac{P(\text{sold and click})}{P(click)}=\frac{P(sold)}{P(click)}" />
+<img src="https://latex.codecogs.com/svg.image?P(\text{sold}|\text{click})=\frac{P(\text{sold&space;and&space;click})}{P(\text{click})}=\frac{P(\text{sold})}{P(\text{click})}" title="P(\text{sold}|\text{click})=\frac{P(\text{sold and click})}{P(\text{click})}=\frac{P(\text{sold})}{P(\text{click})}" />
 
 Since current cost per customer is around 24.0 dollars per customer and the sold rate (sold/shown) is 7.83\% and average P(sold|click)=41.69\%, if we set the average as the baseline for 10 dollars and assume we invest linearly with the probability `P(sold|click)`, we'll have cost per customer even higher 24.19 dollars.
 
 
 However, we give ads to all the samples. In reality, we should have some budget and stop showing more ads once the number of click with paid price reaches our budget. Current cost is $18,780 and we could set it as our budget and stop once reached though random sampling.
 
-
-#### As we can see, from all these sampling trials, the simple linear strategy gives a bit higher cost per customer. We need to add more to current strategy. 
-
 What if we take extreme cases? In the limit of infinite budget and customer samples, we should invest all the budget to the most valuable customer so as to obtain the best cost per customer. However, the limited budget and customer samples requires us invest on more customer with lower bound given by the 4% customer rate. Compared to previous strategy, the linear relation with the average `P(sold|click)` rate might be two slow. Thus, here we try a exponential function function 
 
 <img src="https://latex.codecogs.com/svg.image?B=&space;1&plus;e^{C&space;(P-\bar{P})}" title="B= 1+e^{C (P-\bar{P})}" />
 
-where the bidding price has minimum 1 dollar. The coefficient in the exponent <img src="https://latex.codecogs.com/svg.image?C\equiv&space;20" title="C\equiv 20" />. <img src="https://latex.codecogs.com/svg.image?\bar{P}" title="\bar{P}" /> is the average of <img src="https://latex.codecogs.com/svg.image?P(S|C)" title="P(S|C)" />.
+where the bidding price has minimum 1 dollar. If we constrain the bidding price range to [1,20], the coefficient in the exponent <img src="https://latex.codecogs.com/svg.image?C=&space;7.4" title="C= 7.4" />. <img src="https://latex.codecogs.com/svg.image?\bar{P}=0.2" title="\bar{P}=0.2" /> is an offset average.
 
 
 
@@ -147,7 +140,7 @@ Hence, this is a <a href="https://en.wikipedia.org/wiki/Binomial_regression">bin
 <p align="center">
 <img src="https://latex.codecogs.com/svg.image?\hat{\pi}_i=\frac{1}{1+e^{-\left[a_i(B_i-10)+b_{i0}\right]}}" title="logistic" />
 </p>
-<p>Here, <img src="https://latex.codecogs.com/svg.image?b_{i0}" title="bi0" /> implies the amount of bidding <img src="https://latex.codecogs.com/svg.image?B_i" title="Bi" /> at which <img src="https://latex.codecogs.com/svg.image?\hat{\pi}_i=\frac{1}{2}" title="pi_i_hat=1/2" />, while <img src="https://latex.codecogs.com/svg.image?a_i<0" title="a_i<0" /> measures how spread-out the other companies' bidding prices are. In particular, larger <img src="https://latex.codecogs.com/svg.image?\left|a_i\right|" title="abs_a_i" /> means other companies’ bidding prices are closer to one another (e.g $10.1, 10.2, $9.8...), and smaller <img src="https://latex.codecogs.com/svg.image?\left|a_i\right|" title="abs_a_i" /> means other companies’ bidding prices are more spread out (e.g $7, $9, $15...). More motivations for the choice of logit link function include:</p>
+<p>Here, <img src="https://latex.codecogs.com/svg.image?b_{i0}" title="bi0" /> implies the value of <img src="https://latex.codecogs.com/svg.image?\hat{\pi}_i" title="pi_i_hat" /> when <img src="https://latex.codecogs.com/svg.image?B_i=10" title="Bi=10" />, while <img src="https://latex.codecogs.com/svg.image?a_i<0" title="a_i<0" /> measures how spread-out the other companies' bidding prices are. In particular, larger <img src="https://latex.codecogs.com/svg.image?\left|a_i\right|" title="abs_a_i" /> means other companies’ bidding prices are closer to one another (e.g $10.1, 10.2, $9.8...), and smaller <img src="https://latex.codecogs.com/svg.image?\left|a_i\right|" title="abs_a_i" /> means other companies’ bidding prices are more spread out (e.g $7, $9, $15...). More motivations for the choice of logit link function include:</p>
 <p>- The values of <img src="https://latex.codecogs.com/svg.image?\hat{\pi}_i" title="pi_i_hat" />, which is a probability, gets mapped onto the whole real line, which is the range for linear functions of <img src="https://latex.codecogs.com/svg.image?B_i" title="Bi" />.</p>
 <p>- A change in bidding price has more impact on <img src="https://latex.codecogs.com/svg.image?\hat{\pi}_i" title="pi_i_hat" /> and hence <img src="https://latex.codecogs.com/svg.image?P_i(r;B_i)" title="Pi" /> if <img src="https://latex.codecogs.com/svg.image?B_i" title="Bi" /> is in the region where <img src="https://latex.codecogs.com/svg.image?\hat{\pi}_i" title="pi_i_hat" /> is close to 0.5, e.g. an increase from $8 to $10. This should be contrasted to e.g. an increase from $1000 to $1002, whose impact on <img src="https://latex.codecogs.com/svg.image?\hat{\pi}_i" title="pi_i_hat" /> is minimal. </p>
 
@@ -164,9 +157,7 @@ This method results in the following fits for various customer types. <br />
 
 (PERHAPS PROVIDE A TABLE OF b_i0's HERE. ALSO, IS IT POSSIBLE TO GIVE SOME NUMBERS THAT TELL THE READERS HOW WELL THE BINOMIAL FITS ARE?)
 
-As for <img src="https://latex.codecogs.com/svg.image?a_i" title="a_i" />, we require the data at different bidding price in order to make a well-inform estimate of the parameter. Instead, we make another assumption that it is -ln(7) (HOW MUCH??? PLEASE MODIFY TO THE NUMBER YOU USED.) 
-
-for all customer types. This number implies that, if we decrease our bidding price by $1, the odd, <img src="https://latex.codecogs.com/svg.image?\frac{\hat{\pi}_i}{1-\hat{\pi}_i}" title="odd_hat" />, that another company bids higher than ours will increase by a multiple of 7. (MODIFY THE NUMBER PLEASE)
+As for <img src="https://latex.codecogs.com/svg.image?a_i" title="a_i" />, we require the data at different bidding price in order to make a well-inform estimate of the parameter. Instead, we make another assumption that it is -0.5 for all customer types. This number implies that, if we decrease our bidding price by $1, the odd, <img src="https://latex.codecogs.com/svg.image?\frac{\hat{\pi}_i}{1-\hat{\pi}_i}" title="odd_hat" />, that another company bids higher than ours will increase by a multiple of <img src="https://latex.codecogs.com/svg.image?e^{0.5}\simeq%201.65" title="e^0.5" />. 
 
 
 
@@ -217,15 +208,11 @@ The second and third inputs were [previously predicted by our probability models
 <img src="https://latex.codecogs.com/svg.image?\frac{\partial}{\partial%20B_j}\frac{f(\mathbf{B})}{g(\mathbf{B})}=\frac{M_j}{g(\mathbf{B})}\sum_r\left\{\left[1+a_jB_j(r-1-4\pi_j)\right]C_{j,r}-\frac{f(\mathbf{B})}{g(\mathbf{B})}a_j(r-1-4\pi_j)S_{j,r}\right\}P_j(r;B_j)" title="gradient_f/g" />
 </p>
 
-<p>Since the function <img src="https://latex.codecogs.com/svg.image?\frac{f(\mathbf{B})}{g(\mathbf{B})}" title="f/g" /> we are minimizing in this problem has a rather complicated form, it likely contains many local minima. Hence, we should run the algorithm multiple  (HOW MANY?)</p>
-  
-<p>times and take <img src="https://latex.codecogs.com/svg.image?\mathbf{B}" title="\mathbf{B}" /> from the trial with smallest final <img src="https://latex.codecogs.com/svg.image?\frac{f(\mathbf{B})}{g(\mathbf{B})}" title="f/g" />, in order to obtain the bidding price that yields <img src="https://latex.codecogs.com/svg.image?\frac{f(\mathbf{B})}{g(\mathbf{B})}" title="f/g" /> as close as possible to its global minimum within the constrained region. We set the learning rate, <img src="https://latex.codecogs.com/svg.image?\ell" title="\ell" />, to (HOW MUCH?) </p>
-  
-<p>and the convergence limit, <img src="https://latex.codecogs.com/svg.image?L_{\min}" title="L_{\min}" />, to (HOW MUCH?)</p>
+<p>Since the function <img src="https://latex.codecogs.com/svg.image?\frac{f(\mathbf{B})}{g(\mathbf{B})}" title="f/g" /> we are minimizing in this problem has a rather complicated form, it likely contains many local minima. Hence, we run the algorithm for 26 trials and take <img src="https://latex.codecogs.com/svg.image?\mathbf{B}" title="\mathbf{B}" /> from the trial with smallest final <img src="https://latex.codecogs.com/svg.image?\frac{f(\mathbf{B})}{g(\mathbf{B})}" title="f/g" />, in order to obtain the bidding price that yields <img src="https://latex.codecogs.com/svg.image?\frac{f(\mathbf{B})}{g(\mathbf{B})}" title="f/g" /> as close as possible to its global minimum subject to the constraint. We set the learning rate, <img src="https://latex.codecogs.com/svg.image?\ell" title="\ell" />, to 0.05 and the convergence limit, <img src="https://latex.codecogs.com/svg.image?L_{\min}" title="L_{\min}" />, to 0.0001. These choices of tuning parameters are carefully chosen with the tradeoff between accuracy and computational cost in mind.</p>
 
-These choices of tuning parameters are carefully chosen with the tradeoff between accuracy and computational cost in mind.
+<p>The closest point we obtained to the global minimum corresponds to bidding prices shown in the table below. The resulting cost per purchase is $4.26, and the purchase rate is 4.03%. Note that the raw data has the cost of purchase of $23.98 and the purchase rate of 7.83% with the uniform bidding price of $10. However, the numerical values rely on our assumption that <img src="https://latex.codecogs.com/svg.image?a_i=-0.5" title="a_i=-0.5" /> and should be treated as such. </p>
 
-(RESULTS AND INTERPRETATIONS GO HERE)
+The most important message we learn from this optimization result is that the algorithm tends to favor lower bids for customers who are currently insured and higher bids for customers who are looking to purchase the insurance policy for multiple vehicles or drivers. Furthermore, the series of models and optimization algorithms provided here can be applied to larger customer data sets with more features, including the variation in bidding prices, in order to provide more precise advertisement bidding strategies in the future.
 
 
 
